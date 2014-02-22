@@ -1,11 +1,51 @@
 <html>
     <head>
     	<title>Scrape</title>
-    	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script> 
+    	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    	<script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r61/three.min.js"></script>
+    	<!--<script src="//cdnjs.cloudflare.com/ajax/libs/two.js/0.3.0/two.min.js‏"></script>-->
     </head>
-    <body> DevArt
+    <body>
+    	<style type="text/css">body{padding: 0; margin: 0;}</style>
         <script type="text/javascript">
-        var data={{data}}
+        var data={{data|safe}}
+		var renderer = new THREE.WebGLRenderer({antialias: true});
+		width = document.body.clientWidth;
+		height = document.body.clientHeight;
+      	renderer.setSize(width, height);
+      	document.body.appendChild(renderer.domElement);
+      	renderer.setClearColorHex(0xEEEEEE, 1.0);
+      	renderer.clear();
+      	var camera = new THREE.PerspectiveCamera(45, width/height, 1, 10000);
+		camera.position.z = 300;
+		var scene = new THREE.Scene();
+		//var cube = new THREE.Mesh(new THREE.CubeGeometry(50,50,50),
+		//scene.add(cube);
+		rend(data,0,0,0)
+		renderer.render(scene, camera);
+
+		function rend(d, dx, dy, dz){
+			console.log(d)
+			dim = 20
+			chils = d['children-count']
+			piece = new THREE.Mesh(new THREE.CubeGeometry(dim,dim,dim),new THREE.MeshBasicMaterial({color: 0x000000}))
+			console.log(piece)
+			piece.position.x = dx
+			piece.position.y = dy
+			piece.position.z = dz
+			scene.add(piece)
+			if (chils>0){
+				count=0
+				for (c in d.children){
+					console.log(c)
+					count ++;
+					cx= dx+dim/2 + Math.random()*dim/2
+					cy= dy+dim/2 + Math.random()*dim/2
+					cz= dz+dim/2 + Math.random()*dim/2
+					rend(d.children[c], cx, cy, cz)
+				}
+			}
+		}
         </script>
     </body>
 </html>

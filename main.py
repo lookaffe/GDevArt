@@ -22,7 +22,7 @@ class MainHandler(webapp2.RequestHandler):
         self._render('visualization.html', data=res)
 
     def _render(self, template, **value):
-        j = jinja.get_jinja2()
+        j = jinja2.get_jinja2()
         html = j.render_template(template, **value)
         self.response.write(html)
 
