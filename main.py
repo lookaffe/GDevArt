@@ -17,8 +17,8 @@ class MainHandler(webapp2.RequestHandler):
         	</html>''')
     
     def post(self):
-	    url = self.request.get('selURL')
-	    res = scrape.scrape(url)
+        url = self.request.get('selURL')
+        res = scrape.scrape(url)
         self._render('visualization.html', data=res)
 
     def _render(self, template, **value):
