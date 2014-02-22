@@ -1,5 +1,6 @@
 import webapp2
 from scripts import scrape
+from webapp2_extras import jinja2
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
@@ -18,6 +19,12 @@ class MainHandler(webapp2.RequestHandler):
     def post(self):
 	    url = self.request.get('selURL')
 	    res = scrape.scrape(url)
-	    self.response.write(res)
+        self._render('visualization.html', data=res)
+
+    def _render(self, template, **value):
+        j = jinja.get_jinja2()
+        html = j.render_template(template, **value)
+        self.response.write(html)
+
 
 app = webapp2.WSGIApplication([('/', MainHandler)], debug=True)
