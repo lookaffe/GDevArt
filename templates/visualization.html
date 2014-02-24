@@ -8,7 +8,8 @@
     <body>
     	<style type="text/css">body{padding: 0; margin: 0;}</style>
         <script type="text/javascript">
-        var data={{data|safe}}
+
+        // Rendering
 		var renderer = new THREE.WebGLRenderer({antialias: true});
 		width = document.body.clientWidth;
 		height = document.body.clientHeight;
@@ -27,8 +28,12 @@
 	    // enable shadows for a light
 	    light.castShadow = true;
 	    scene.add(light);
-
-		rend(data,0,0,0)
+		
+		// Json extraction and analysis
+		var data={{data|safe}}
+		maxSize = data['size']
+		rend(data, 0,0,0)
+		
 		// enable shadows on the renderer
       	renderer.shadowMapEnabled = true;
 
@@ -36,11 +41,11 @@
 
 		function rend(d, dx, dy, dz){
 			console.log(d)
-			dim = 20
+			dim = d['size']*30/maxSize
 			chils = d['children-count']
 			piece = new THREE.Mesh(new THREE.CubeGeometry(dim,dim,dim),new THREE.MeshLambertMaterial({color: 0xFFFFFF}))
 			piece.position.x = -dx
-			piece.position.y = -dy
+			piece.position.y = dy
 			piece.position.z = -dz
 			// enable shadows for an object
       		piece.castShadow = true;
@@ -59,7 +64,12 @@
 				}
 			}
 		}
-		/* Mandelbrot 2D pseudocode
+
+		function mandelRend(d,maxSize){
+			chils=d['children-count']
+			//x0 = 
+		}
+		/* Mandelbrot 2D pseudocode "Excape time algorithm"
 		For each pixel (Px, Py) on the screen, do:
 		{
   			x0 = scaled x coordinate of pixel (scaled to lie in the Mandelbrot X scale (-2.5, 1))
@@ -78,7 +88,7 @@
 			color = palette[iteration]
 			plot(Px, Py, color)
 		}
- */
+ 		*/
 
         </script>
     </body>
