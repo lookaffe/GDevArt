@@ -21,19 +21,32 @@
 		var scene = new THREE.Scene();
 		//var cube = new THREE.Mesh(new THREE.CubeGeometry(50,50,50),
 		//scene.add(cube);
+		
+		var light = new THREE.SpotLight();
+      	light.position.set( 100, 100, 50 );
+	    // enable shadows for a light
+	    light.castShadow = true;
+	    scene.add(light);
+
 		rend(data,0,0,0)
+		// enable shadows on the renderer
+      	renderer.shadowMapEnabled = true;
+
 		renderer.render(scene, camera);
 
 		function rend(d, dx, dy, dz){
 			console.log(d)
 			dim = 20
 			chils = d['children-count']
-			piece = new THREE.Mesh(new THREE.CubeGeometry(dim,dim,dim),new THREE.MeshBasicMaterial({color: 0x000000}))
-			console.log(piece)
-			piece.position.x = dx
-			piece.position.y = dy
-			piece.position.z = dz
+			piece = new THREE.Mesh(new THREE.CubeGeometry(dim,dim,dim),new THREE.MeshLambertMaterial({color: 0xFFFFFF}))
+			piece.position.x = -dx
+			piece.position.y = -dy
+			piece.position.z = -dz
+			// enable shadows for an object
+      		piece.castShadow = true;
+      		piece.receiveShadow = true;
 			scene.add(piece)
+
 			if (chils>0){
 				count=0
 				for (c in d.children){
@@ -46,6 +59,27 @@
 				}
 			}
 		}
+		/* Mandelbrot 2D pseudocode
+		For each pixel (Px, Py) on the screen, do:
+		{
+  			x0 = scaled x coordinate of pixel (scaled to lie in the Mandelbrot X scale (-2.5, 1))
+  			y0 = scaled y coordinate of pixel (scaled to lie in the Mandelbrot Y scale (-1, 1))
+			x = 0.0
+			y = 0.0
+			iteration = 0
+			max_iteration = 1000
+			while ( x*x + y*y < 2*2  AND  iteration < max_iteration )
+			{
+				xtemp = x*x - y*y + x0
+			    y = 2*x*y + y0
+			    x = xtemp
+			    iteration = iteration + 1
+			}
+			color = palette[iteration]
+			plot(Px, Py, color)
+		}
+ */
+
         </script>
     </body>
 </html>
