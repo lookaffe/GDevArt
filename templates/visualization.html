@@ -47,13 +47,65 @@
 		//rend(data, 0,0,0)
 		//mandelRend(data, maxSize)
 
-		var mesh = rendPoly()
+// la creazione dei vertici e delle facce la devo ancora automatizzare in base al numero di figli, ma varierà il divisore di 2Pigreco, per disporre i punti intorno all'asse
+		
+		var theta = 2*Math.PI/3
+		var radius = 50 //questo potrebbe essere la grandezza
+	 	var vertices = [ // definisce i vertici tra i quali creare le facce
+            [ Math.sin(theta), 0, Math.cos(theta) ],
+            [ Math.sin(2*theta), 0, Math.cos(2*theta) ],
+            [ Math.sin(3*theta), 0, Math.cos(3*theta) ],
+            [0, 1, 0] // bisogna creare un ciclo che crea un vertice a seconda del numero di figli, moltiplicando l'angolo theta
+        ];
+
+        var faces = [ // definisce le facce da disegnare tra i vertici (presi come indici della matrice sopra)
+            [0, 1, 2],
+            [0, 1, 3],
+            [1, 2, 3],
+            [2, 0, 3] // questo e' piu' un ditone, perche' la prima faccia avra' tanti indici quanti sono i vertici e le altre a scalare. Ma non ci vorra' molto..
+        ];
+
+		var mesh = rendPoly(vertices, faces, radius) // funzione scema che chiama un altra funzione ad hoc (in fondo al file)
+		scene.add( mesh );
+
+		var theta1 = 2*Math.PI/4
+		var radius = -30 // con il meno si ribalta il capo della piramide
+	 	var vertices = [
+            [ Math.sin(theta1), 0, Math.cos(theta1) ],
+            [ Math.sin(2*theta1), 0, Math.cos(2*theta1) ],
+            [ Math.sin(3*theta1), 0, Math.cos(3*theta1) ],
+            [ Math.sin(4*theta1), 0, Math.cos(4*theta1) ],
+            [0, 1, 0]
+        ];
+
+        var faces = [
+            [0, 1, 2, 3], // questo e' un tetraedro e la prima faccia sara' disegnata tra 4 vertici (in realta' non lo fa..)
+            [0, 1, 4],
+            [1, 2, 4],
+            [2, 3, 4],
+            [3, 0, 4]
+        ];
+
+		var mesh = rendPoly(vertices, faces, radius)
+		mesh.position.x = 25*Math.sin(3*theta) // le seguenti spostano il nuovo mesh su un vertice (con 25 in mezzo al precedente, con 50 sul vertice)
+		mesh.position.y = -radius
+		mesh.position.z = 25*Math.cos(3*theta)
+		// sarebbe carino qui ruotare di Pigreco, ma non l'ho ancora implementato
+
 		scene.add( mesh );
 
 		// enable shadows on the renderer
       	renderer.shadowMapEnabled = true;
 
 		renderer.render(scene, camera);
+
+		function rendPoly(vertices, faces, radius){
+			mesh = createMesh(new THREE.PolyhedronGeometry(vertices, faces, radius, 0));
+			mesh.castShadow = true;
+      		mesh.receiveShadow = true;
+			return mesh
+		}
+
 
 		function rendCube(){
 			var geometry = new THREE.PolyheGeometry( 50, 50, 50 );
@@ -71,27 +123,7 @@
 			return mesh
 		}
 
-		function rendPoly(){
-		 	var vertices = [
-                [ 1, 0, 1 ],
-                [ 1, 0, -1 ],
-                [ -1, 0, -1 ],
-                [ -1, 0, 1 ],
-                [0, 1, 0]
-            ];
 
-            var faces = [
-                [0, 1, 2, 3],
-                [0, 1, 4],
-                [1, 2, 4],
-                [2, 3, 4],
-                [3, 0, 4]
-            ];
-			mesh = createMesh(new THREE.PolyhedronGeometry(vertices, faces, 50, 0));
-			mesh.castShadow = true;
-      		mesh.receiveShadow = true;
-			return mesh
-		}
 
 		function rend(d, dx, dy, dz){
 			console.log(d)

@@ -27,21 +27,12 @@ def siteNav(cont):
 		dizzio['id'] = cont.get('id')
 	else:
 		dizzio['id'] = None
-
-
-	print(cont.get('class'))
-
 	
 	li=[]
-	for elem in cont.children: 												#per tutti i tag
-		if elem.name is not None: 											#che non contengano solo stringa
-			print ('tag: - ' + elem.name + ' - in - ' + elem.parent.name) 	#stampo il nome e il nome del genitore.
+	for elem in cont.children:
+		if elem.name is not None:
 			a=siteNav(elem)
 			li.append(a)
 	dizzio['children']=li
 	dizzio['children-count'] = len(li)
 	return dizzio
-
-
-
-#in output vedrai i vari tag con i rispettivi padri ed il dizionario completo.
