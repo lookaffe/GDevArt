@@ -19,25 +19,79 @@
       	renderer.clear();
       	var camera = new THREE.PerspectiveCamera(45, width/height, 1, 10000);
 		camera.position.z = 300;
-		var scene = new THREE.Scene();
-		//var cube = new THREE.Mesh(new THREE.CubeGeometry(50,50,50),
-		//scene.add(cube);
 		
+		var scene = new THREE.Scene();
 		var light = new THREE.SpotLight();
-      	light.position.set( 100, 100, 50 );
+      	light.position.set( 170, 330, -160 );
 	    // enable shadows for a light
 	    light.castShadow = true;
 	    scene.add(light);
+
+	    function animate(t) {
+        	// spin the camera in a circle
+        	camera.position.x = Math.sin(t/1000)*300;
+	        camera.position.y = 150;
+	        camera.position.z = Math.cos(t/1000)*300;
+	        // you need to update lookAt every frame
+	        camera.lookAt(scene.position);
+	        // renderer automatically clears unless autoClear = false
+	        renderer.render(scene, camera);
+	        window.requestAnimationFrame(animate, renderer.domElement);
+      	};
+      	
+      	animate(new Date().getTime());
 		
 		// Json extraction and analysis
 		var data={{data|safe}}
 		maxSize = data['size']
-		rend(data, 0,0,0)
-		
+		//rend(data, 0,0,0)
+		//mandelRend(data, maxSize)
+
+		var mesh = rendPoly()
+		scene.add( mesh );
+
 		// enable shadows on the renderer
       	renderer.shadowMapEnabled = true;
 
 		renderer.render(scene, camera);
+
+		function rendCube(){
+			var geometry = new THREE.PolyheGeometry( 50, 50, 50 );
+			var material = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+			var mesh = new THREE.Mesh( geometry, material );
+			mesh.castShadow = true;
+      		mesh.receiveShadow = true;
+			return mesh
+		}
+
+		function rendTetra(){
+			mesh = createMesh(new THREE.TetrahedronGeometry(50, 0));
+			mesh.castShadow = true;
+      		mesh.receiveShadow = true;
+			return mesh
+		}
+
+		function rendPoly(){
+		 	var vertices = [
+                [ 1, 0, 1 ],
+                [ 1, 0, -1 ],
+                [ -1, 0, -1 ],
+                [ -1, 0, 1 ],
+                [0, 1, 0]
+            ];
+
+            var faces = [
+                [0, 1, 2, 3],
+                [0, 1, 4],
+                [1, 2, 4],
+                [2, 3, 4],
+                [3, 0, 4]
+            ];
+			mesh = createMesh(new THREE.PolyhedronGeometry(vertices, faces, 50, 0));
+			mesh.castShadow = true;
+      		mesh.receiveShadow = true;
+			return mesh
+		}
 
 		function rend(d, dx, dy, dz){
 			console.log(d)
@@ -65,10 +119,7 @@
 			}
 		}
 
-		function mandelRend(d,maxSize){
-			chils=d['children-count']
-			//x0 = 
-		}
+
 		/* Mandelbrot 2D pseudocode "Excape time algorithm"
 		For each pixel (Px, Py) on the screen, do:
 		{
@@ -88,7 +139,193 @@
 			color = palette[iteration]
 			plot(Px, Py, color)
 		}
+		*/
+		function mandelRend(d,maxSize){
+			chils=d['children-count']
+			size=36;
+			RANGE = 1.2
+			xlow=-RANGE;
+			xhigh=RANGE;
+			ylow=-RANGE;
+			yhigh=RANGE;
+			zlow=-RANGE;
+			zhigh=RANGE;
+
+			maxit=3;
+			mandpow=2.0;
+
+			function valInRange(low, high, size, off){
+				return low+((high-low)/size)*off;
+			}
+			
+			function doPoint(cx, cy, cz){
+				for(i=0,x=0.0,y=0.0,z=0.0;(i<maxit) && (x*x+y*y+z*z) < 2.0;i++){
+					r = Math.sqrt(x*x + y*y + z*z );
+    				theta = Math.atan2(Math.sqrt(x*x + y*y) , z);
+    				phi = Math.atan2(y,x);
+
+    				// These maths from http://www.skytopia.com/project/fractal/mandelbulb.html
+    				rpow = Math.pow(r,mandpow);
+    				newx = rpow * Math.sin(theta*mandpow) * Math.cos(phi*mandpow);
+    				newy = rpow * Math.sin(theta*mandpow) * Math.sin(phi*mandpow);
+    				newz = rpow * Math.cos(theta*mandpow);
+
+    				x=newx+cx;
+    				y=newy+cy;
+    				z=newz+cz;
+  				}
+  			return i;
+			}
+
+			for(z=0;z<size;z++){
+    			fz = valInRange(zlow, zhigh, size, z);
+    			for(y=0;y<size;y++){
+      				fy=valInRange(ylow, yhigh, size, y);
+      				for(x=0;x<size;x++) {
+        				fx=valInRange(xlow, xhigh, size, x);
+        				val=doPoint(fx,fy,fz);
+        				if(val>=(maxit-1)){
+        					console.log(val);
+       //  					piece = new THREE.Mesh(new THREE.CubeGeometry(val,val,val),new THREE.MeshLambertMaterial({color: 0xFFFFFF}));
+       //  					piece.position.x = x;
+							// piece.position.y = y;
+							// piece.position.z = z;
+							// scene.add(piece);
+						}
+
+      				}
+    			}
+  			}
+		}
+
+/* (c) Dave Gilbert dave@treblig.org 2010
+   except for inner core of maths taken from example at:
+      http://www.skytopia.com/project/fractal/mandelbulb.html
+
+  This spits out a voxel array on stdout, 1 byte per voxel (255 if > iteration limit
+  else 0).
+
+#include <stdio.h>
+
+#include <math.h>
+
+const unsigned int size=256;
+#define RANGE 1.2
+const double xlow=-RANGE;
+const double xhigh=RANGE;
+const double ylow=-RANGE;
+const double yhigh=RANGE;
+const double zlow=-RANGE;
+const double zhigh=RANGE;
+
+const unsigned int maxit=80;
+const double mandpow=8.0;
+
+double valInRange(double low, double high, unsigned int size, unsigned int off)
+{
+  return low+((high-low)/(double)size)*(double)off;
+}
+
+unsigned int doPoint(double cx, double cy, double cz)
+{
+  double x,y,z;
+  double newx,newy,newz;
+  double r,theta,phi;
+  unsigned int i;
+
+  for(i=0,x=0.0,y=0.0,z=0.0;(i<maxit) && (x*x+y*y+z*z) < 2.0;i++)
+  {
+    double rpow;
+
+    r = sqrt(x*x + y*y + z*z );
+    theta = atan2(sqrt(x*x + y*y) , z);
+    phi = atan2(y,x);
+
+    // These maths from http://www.skytopia.com/project/fractal/mandelbulb.html
+    rpow = pow(r,mandpow);
+    newx = rpow * sin(theta*mandpow) * cos(phi*mandpow);
+    newy = rpow * sin(theta*mandpow) * sin(phi*mandpow);
+    newz = rpow * cos(theta*mandpow);
+
+    x=newx+cx;
+    y=newy+cy;
+    z=newz+cz;
+  }
+
+  return i;
+}
+
+int main()
+{
+  unsigned int x,y,z;
+
+  for(z=0;z<size;z++) {
+    double fz=valInRange(zlow, zhigh, size, z);
+    fprintf(stderr,"fz=%lf\n", fz);
+    for(y=0;y<size;y++) {
+      double fy=valInRange(ylow, yhigh, size, y);
+      for(x=0;x<size;x++) {
+        double fx=valInRange(xlow, xhigh, size, x);
+        unsigned int val=doPoint(fx,fy,fz);
+        putchar((val>=(maxit-1))?255:0);
+      }
+    }
+  }
+}
  		*/
+
+/*
+  public void MBrot()
+    {
+        float epsilon = 0.0001; // The step size across the X and Y axis
+        float x;
+        float y;
+        int maxIterations = 10; // increasing this will give you a more detailed fractal
+        int maxColors = 256; // Change as appropriate for your display.
+
+        Complex Z;
+        Complex C;
+        int iterations;
+        for(x=-2; x<=2; x+= epsilon)
+        {
+            for(y=-2; y<=2; y+= epsilon)
+            {
+                iterations = 0;
+                C = new Complex(x, y);
+                Z = new Complex(0,0);
+                while(Complex.Abs(Z) < 2 && iterations < maxIterations)
+                {
+                    Z = Z*Z + C;
+                    iterations++;
+                }
+                Screen.Plot(x,y, maxColors % iterations); // depending on the number of iterations, color a pixel.
+            }
+        }
+    }
+    */
+
+    /* Koch snowflakes
+    fractal(p0, p1){
+    Pmid = midpoint(p0,p1) + moved some distance perpendicular to p0 or p1;
+    fractal(p0,Pmid);
+    fractal(Pmid, p1);
+	}
+	*/
+
+
+        function createMesh(geom) {
+
+            // assign two materials
+            var meshMaterial = new THREE.MeshNormalMaterial();
+            meshMaterial.side = THREE.DoubleSide;
+            var wireFrameMat = new THREE.MeshBasicMaterial();
+            wireFrameMat.wireframe = true;
+
+            // create a multimaterial
+            var mesh = THREE.SceneUtils.createMultiMaterialObject(geom, [meshMaterial, wireFrameMat]);
+
+            return mesh;
+        }
 
         </script>
     </body>
